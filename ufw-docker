@@ -381,6 +381,12 @@ function die() {
     exit 1
 }
 
+# if we are inside of docker container
+if [[ -f /usr/bin/docker-entrypoint.sh ]]; then
+  # inside of container we need to enable UFW manually
+  yes | ufw enable
+fi
+
 if ! ufw status 2>/dev/null | grep -Fq "Status: active" ; then
     die "UFW is disabled or you are not root user."
 fi

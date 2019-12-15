@@ -199,7 +199,6 @@ function ufw-docker--service-allow() {
         docker service create --name "$ufw_docker_agent" --mode global \
                --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
                --mount type=bind,source=/etc/ufw,target=/etc/ufw,readonly=true \
-               --cap-add "NET_ADMIN" \
                --env ufw_docker_agent_image="${ufw_docker_agent_image}" \
                --env DEBUG="${DEBUG:-}" \
                --env "${service_env}" \

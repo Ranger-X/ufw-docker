@@ -194,9 +194,12 @@ function ufw-docker--service-allow() {
 
     if ! docker service inspect "$ufw_docker_agent" &>/dev/null; then
         err "Not found ufw-docker-agent service, creating ..."
+        # --cap-add available only in nightly build of docker engine for now :-(
+        # more info: https://github.com/moby/moby/issues/25885#issuecomment-557790402
         docker service create --name "$ufw_docker_agent" --mode global \
                --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
                --mount type=bind,source=/etc/ufw,target=/etc/ufw,readonly=true \
+               --cap-add "NET_ADMIN" \
                --env ufw_docker_agent_image="${ufw_docker_agent_image}" \
                --env DEBUG="${DEBUG:-}" \
                --env "${service_env}" \

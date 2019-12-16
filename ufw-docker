@@ -81,9 +81,7 @@ function ufw-docker--add-service-rule() {
     target_ip_port="$(iptables -t nat -L DOCKER-INGRESS | grep -E "^DNAT\\s+${proto}\\s+.+\\sto:[.0-9]+:${port}\$" | grep -Eo "[.0-9]+:${port}\$")"
 
     # if none found then check for mappings for swarm mode: host
-    if [[ -z "$target_ip_port" ]]; then
-      target_ip_port="$(iptables -t nat -L DOCKER | grep -E "^DNAT\\s+${proto}\\s+.+\\sto:[.0-9]+:${port}\$" | grep -Eo "[.0-9]+:${port}\$")"
-    fi
+    [[ -z "$target_ip_port" ]] && target_ip_port="$(iptables -t nat -L DOCKER | grep -E "^DNAT\\s+${proto}\\s+.+\\sto:[.0-9]+:${port}\$" | grep -Eo "[.0-9]+:${port}\$")"
 
     [[ -z "$target_ip_port" ]] && die "Could not find VIP of service ${service_id}."
 

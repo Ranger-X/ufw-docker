@@ -9,6 +9,7 @@ DEFAULT_PROTO=tcp
 
 ufw_docker_agent=ufw-docker-agent
 ufw_docker_agent_image="${ufw_docker_agent_image:-chaifeng/${ufw_docker_agent}:181005}"
+ufw_docker_with_registry_auth="${ufw_docker_with_registry_auth:-0}"
 
 function ufw-docker--status() {
     ufw-docker--list "$GREP_REGEXP_INSTANCE_NAME"
@@ -200,9 +201,16 @@ function ufw-docker--service-allow() {
         err "Not found ufw-docker-agent service, creating ..."
         # --cap-add available only in nightly build of docker engine for now :-(
         # more info: https://github.com/moby/moby/issues/25885#issuecomment-557790402
+        declare -a additional_args
+
+        if [[ $ufw_docker_with_registry_auth -gt 0 ]]; then
+          additional_args+=(--with-registry-auth)
+        fi
+
         docker service create --name "$ufw_docker_agent" --mode global \
                --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
                --mount type=bind,source=/etc/ufw,target=/etc/ufw,readonly=true \
+               "${additional_args[@]}" \
                --env ufw_docker_agent_image="${ufw_docker_agent_image}" \
                --env DEBUG="${DEBUG:-}" \
                --env "${service_env}" \
@@ -210,6 +218,12 @@ function ufw-docker--service-allow() {
     else
         declare -a service_env_list
         service_env_list+=(--env-add "${service_env}")
+
+        declare -a additional_args
+
+        if [[ $ufw_docker_with_registry_auth -gt 0 ]]; then
+          additional_args+=(--with-registry-auth)
+        fi
 
         exec 8< <(ufw-docker--get-env-list)
         while read -u 8 -r id value; do
@@ -221,6 +235,7 @@ function ufw-docker--service-allow() {
         docker service update --update-parallelism=0 \
                --env-add ufw_docker_agent_image="${ufw_docker_agent_image}" \
                --env-add DEBUG="${DEBUG:-}" \
+               "${additional_args[@]}" \
                "${service_env_list[@]}" \
                --image "${ufw_docker_agent_image}" \
                "${ufw_docker_agent}"

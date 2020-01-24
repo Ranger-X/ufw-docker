@@ -266,9 +266,16 @@ function ufw-docker--service-delete() {
 
     [[ -z "${service_env:-}" ]] && die "Could not find service \"$service_name\""
 
+    declare -a additional_args
+
+    if [[ $ufw_docker_with_registry_auth -gt 0 ]]; then
+      additional_args+=(--with-registry-auth)
+    fi
+
     docker service update --update-parallelism=0 \
            --env-add ufw_docker_agent_image="${ufw_docker_agent_image}" \
            --env-add "${service_env}" \
+           "${additional_args[@]}" \
            --image "${ufw_docker_agent_image}" \
            "${ufw_docker_agent}"
 }

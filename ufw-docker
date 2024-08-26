@@ -86,7 +86,7 @@ function ufw-docker--add-service-rule() {
 
     [[ -z "$target_ip_port" ]] && die "Could not find VIP of service ${service_id}."
 
-    ufw-docker--add-rule "$service_id" "${target_ip_port%:*}" "$port" "$proto"
+    ufw-docker--add-rule "$service_id" "${target_ip_port%:*}" "${target_ip_port#*:}" "$proto"
 }
 
 function ufw-docker--add-rule() {
